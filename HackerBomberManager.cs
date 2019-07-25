@@ -10,7 +10,6 @@ using System.Web;
 namespace 专治骗子
 {
     public class BomberPerformer {
-        public event EventHandler<EventArgs> OnBombSuccess;
         private int mSuccessCount = 0;
         private int mThreadCount = 16;
         public int ThreadCount {
@@ -49,9 +48,6 @@ namespace 专治骗子
             while (isStarted) {
                 if (mBomber.perform()) {
                     mSuccessCount++;
-                    if (null != OnBombSuccess) {
-                        OnBombSuccess.Invoke(this,new EventArgs());
-                    }
                 }
             }
         }
@@ -189,12 +185,61 @@ namespace 专治骗子
     public interface IBomber {
         bool perform();
     }
-    public abstract class IGeneralBomber : IBomber
+    public class GeneralBomber : IBomber
     {
-        public abstract string BaseUrl { get; }
-        public abstract string PassowordKey { get; }
-        public abstract string UserKey { get; }
-        public abstract string HttpMethod { get; }
+        public event EventHandler<BomberResultEventArgs> OnBomberComplete;
+        public GeneralBomber(string baseUrl, string userKey, string passKey, string httpMethod)
+        {
+            this.mBaseUrl = baseUrl;
+            this.mUserKey = userKey;
+            this.mPassKey = passKey;
+            this.mHttpMethod = httpMethod;
+        }
+        private string mBaseUrl, mUserKey, mPassKey, mHttpMethod;
+        public virtual string BaseUrl
+        {
+            get
+            {
+                return mBaseUrl;
+            }
+            set
+            {
+                mBaseUrl = value;
+            }
+        }
+        public virtual string HttpMethod
+        {
+            get
+            {
+                return mHttpMethod;
+            }
+            set
+            {
+                mHttpMethod = value;
+            }
+        }
+        public virtual string PassowordKey
+        {
+            get
+            {
+                return mPassKey;
+            }
+            set
+            {
+                mPassKey = value;
+            }
+        }
+        public virtual string UserKey
+        {
+            get
+            {
+                return mUserKey;
+            }
+            set
+            {
+                mUserKey = value;
+            }
+        }
         public virtual string MakeRandomQQ() {
             return BomberUtils.RandomQQNumber();
         }
@@ -221,6 +266,7 @@ namespace 专治骗子
             string httpkeyvalue = MakeHttpKeyValue(form);
             string result = "";
             bool success = false;
+            Exception exception = null;
             try
             {
                 HttpWebRequest request = CreateRequest(httpkeyvalue);
@@ -228,64 +274,27 @@ namespace 专治骗子
                 success = true;
             }
             catch (Exception ex) {
+                exception = ex;
                 result = ex.Message;
             }
-            printResult(user, pass, result);
+            if (OnBomberComplete != null)
+            {
+                OnBomberComplete.Invoke(this, new BomberResultEventArgs(success, user, pass, BaseUrl,result, exception));
+            }
             return success;
         }
-        public virtual void printResult(string user, string pass, string result) {
-            BomberUtils.PrintResult(user, pass, result);
-        }
     } 
-    public class GeneralBomber : IGeneralBomber
+    public class GeneralBomberWithAdditional : GeneralBomber
     {
-        public GeneralBomber(string baseUrl,string userKey,string passKey,string httpMethod) {
-            this.mBaseUrl = baseUrl;
-            this.mUserKey = userKey;
-            this.mPassKey = passKey;
-            this.mHttpMethod = httpMethod;
-        }
-        public GeneralBomber(string baseUrl, string userKey, string passKey, string httpMethod,params KeyValuePair<string,string>[] additionalKeyValue)
+        public GeneralBomberWithAdditional(string baseUrl, string userKey, string passKey, string httpMethod,params KeyValuePair<string,string>[] additionalKeyValue)
+        :base(baseUrl, userKey, passKey, httpMethod)
         {
-            this.mBaseUrl = baseUrl;
-            this.mUserKey = userKey;
-            this.mPassKey = passKey;
-            this.mHttpMethod = httpMethod;
             foreach (KeyValuePair<string, string> kvs in additionalKeyValue)
             {
                 AdditionalKeyValue.Add(kvs.Key, kvs.Value);
             }
         }
-        private string mBaseUrl, mUserKey, mPassKey, mHttpMethod;
         private Dictionary<string, string> AdditionalKeyValue = new Dictionary<string, string>();
-        public override string BaseUrl
-        {
-            get
-            {
-                return mBaseUrl;
-            }
-        }
-        public override string HttpMethod
-        {
-            get
-            {
-                return mHttpMethod;
-            }
-        }
-        public override string PassowordKey
-        {
-            get
-            {
-                return mPassKey;
-            }
-        }
-        public override string UserKey
-        {
-            get
-            {
-                return mUserKey;
-            }
-        }
         public override Dictionary<string, string> MakeWebform(string user, string pass)
         {
             Dictionary<string,string> based = base.MakeWebform(user, pass);
@@ -294,5 +303,99 @@ namespace 专治骗子
             }
             return based;
         }
+    }
+    public class BomberResultEventArgs : EventArgs {
+        bool mBomberResult;
+        string mUsesUser,mUsesPassword,mUsesUrl,mReturnValue;
+        Exception mException;
+
+        public bool BomberResult
+        {
+            get
+            {
+                return mBomberResult;
+            }
+
+            set
+            {
+                mBomberResult = value;
+            }
+        }
+
+        public string UsesUser
+        {
+            get
+            {
+                return mUsesUser;
+            }
+
+            set
+            {
+                mUsesUser = value;
+            }
+        }
+
+        public string UsesPassword
+        {
+            get
+            {
+                return mUsesPassword;
+            }
+
+            set
+            {
+                mUsesPassword = value;
+            }
+        }
+
+        public string UsesUrl
+        {
+            get
+            {
+                return mUsesUrl;
+            }
+
+            set
+            {
+                mUsesUrl = value;
+            }
+        }
+
+        public Exception Exception
+        {
+            get
+            {
+                return mException;
+            }
+
+            set
+            {
+                mException = value;
+            }
+        }
+
+        public string ReturnValue
+        {
+            get
+            {
+                return mReturnValue;
+            }
+
+            set
+            {
+                mReturnValue = value;
+            }
+        }
+
+        public BomberResultEventArgs(bool bomberResult,string usesUser,string usesPassword,string usesUrl,string returnValue,Exception ex) {
+            this.mBomberResult = bomberResult;
+            this.mUsesUser = usesUser;
+            this.mUsesPassword = usesPassword;
+            this.mUsesUrl = usesUrl;
+            this.mReturnValue = returnValue;
+            this.mException = ex;
+        }
+
+
     }
 }
