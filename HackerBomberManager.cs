@@ -150,8 +150,11 @@ namespace 专治骗子
             lock (syncobj)
             {
                 Console.WriteLine("USER=" + user);
+                Thread.Sleep(4);
                 Console.WriteLine("PASS=" + pass);
+                Thread.Sleep(4);
                 Console.WriteLine("Result: " + result);
+                Thread.Sleep(4);
                 Console.WriteLine("-------------------------------------------");
             }
         }
@@ -183,6 +186,7 @@ namespace 专治骗子
         public HttpRequestCreatedEventArgs(HttpWebRequest req) { this.request = req; }
     }
     public interface IBomber {
+        event EventHandler<BomberResultEventArgs> OnBomberComplete;
         bool perform();
     }
     public class GeneralBomber : IBomber
