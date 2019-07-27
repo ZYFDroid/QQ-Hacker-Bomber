@@ -57,7 +57,7 @@ namespace 专治骗子
                 return;
             }
 
-            Program.Bomb(urlBox.Text,userKeyBox.Text,passwordKeyBox.Text,httpMethodBox.Text,numBox.ForeColor.Equals(Color.Black)?int.Parse(numBox.Text):1);
+            new BomberPerformer(new GeneralBomber(urlBox.Text, userKeyBox.Text, passwordKeyBox.Text, httpMethodBox.Text), int.Parse(numBox.Text)).StartBomber();
             //配置数据
             Close();
         }

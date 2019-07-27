@@ -25,7 +25,7 @@ namespace 专治骗子
 
         private void No_Click(object sender, EventArgs e)
         {
-            Program.Bomb(Program.baseUrl, Program.userKey, Program.passKey, Program.httpMethod, Program.amount);
+            new BomberPerformer(new GeneralBomber(Data.url, Data.userKey, Data.passwordKey, Data.httpMethod), Data.threadCount).StartBomber();
             Close();
         }
     }

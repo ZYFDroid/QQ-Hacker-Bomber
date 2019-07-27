@@ -9,28 +9,41 @@ using System.Web;
 
 namespace 专治骗子
 {
-    public class BomberPerformer {
+    public class BomberPerformer
+    {
         private int mSuccessCount = 0;
         private int mThreadCount = 16;
-        public int ThreadCount {
+        public int ThreadCount
+        {
             get { return mThreadCount; }
             set { mThreadCount = value; }
         }
-        public int SuccessCount {
-            get {
+        public int SuccessCount
+        {
+            get
+            {
                 return mSuccessCount;
             }
         }
         private IBomber mBomber;
         private bool isStarted = false;
         private List<Thread> BomberThreads = new List<Thread>();
-        public BomberPerformer(IBomber bomber) {
+        public BomberPerformer(IBomber bomber)
+        {
             mBomber = bomber;
         }
-        public void StartBomber() {
+
+        public BomberPerformer(IBomber bomber, int count)
+        {
+            mBomber = bomber;
+            ThreadCount = count;
+        }
+        public void StartBomber()
+        {
             new Thread(mStartBomber).Start();
         }
-        private void mStartBomber() {
+        private void mStartBomber()
+        {
             isStarted = true;
             while (BomberThreads.Count < mThreadCount)
             {
@@ -40,13 +53,17 @@ namespace 专治骗子
                 t.Start();
             }
         }
-        public void StopBomber() {
+        public void StopBomber()
+        {
             isStarted = false;
             BomberThreads.Clear();
         }
-        private void run() {
-            while (isStarted) {
-                if (mBomber.perform()) {
+        private void run()
+        {
+            while (isStarted)
+            {
+                if (mBomber.perform())
+                {
                     mSuccessCount++;
                 }
             }
@@ -60,7 +77,8 @@ namespace 专治骗子
             TimeSpan ts = DateTime.Now.ToUniversalTime() - new DateTime(1970, 1, 1);
             return (long)ts.TotalMilliseconds;
         }
-        public static string DictionaryToHttpKeyValue(Dictionary<string, string> dic) {
+        public static string DictionaryToHttpKeyValue(Dictionary<string, string> dic)
+        {
             StringBuilder builder = new StringBuilder();
             int i = 0;
             foreach (var item in dic)
@@ -72,8 +90,10 @@ namespace 专治骗子
             }
             return builder.ToString();
         }
-        public static HttpWebRequest MakeHttpRequest(string url, string httpKeyValue, string method) {
-            if (method == "GET") {
+        public static HttpWebRequest MakeHttpRequest(string url, string httpKeyValue, string method)
+        {
+            if (method == "GET")
+            {
                 return MakeHttpGet(url, httpKeyValue);
             }
             return MakeHttpPost(url, httpKeyValue);
@@ -101,7 +121,8 @@ namespace 专治骗子
             byte[] data = Encoding.UTF8.GetBytes(httpKeyValue);
             req.ContentLength = data.Length;
             req.AllowAutoRedirect = false;
-            if (null != BeforeRequestSend) {
+            if (null != BeforeRequestSend)
+            {
                 BeforeRequestSend.Invoke(req, new HttpRequestCreatedEventArgs(req));
             }
             using (Stream reqStream = req.GetRequestStream())
@@ -111,7 +132,8 @@ namespace 专治骗子
             }
             return req;
         }
-        public static string GetHttpResponse(HttpWebRequest req) {
+        public static string GetHttpResponse(HttpWebRequest req)
+        {
             string result = "";
             HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
             Stream stream = resp.GetResponseStream();
@@ -119,7 +141,7 @@ namespace 专治骗子
             {
                 result = reader.ReadToEnd();
             }
-            return "["+resp.StatusCode.ToString()+"] " + result;
+            return "[" + resp.StatusCode.ToString() + "] " + result;
         }
         public static string GenerateRandomSequence(string charpool, int minlen, int maxlen)
         {
@@ -132,16 +154,20 @@ namespace 专治骗子
             }
             return sb.ToString();
         }
-        public static string RandomQQNumber() {
+        public static string RandomQQNumber()
+        {
             return GenerateRandomSequence("1234567890", 7, 10);
         }
-        public static string RandomPassword() {
+        public static string RandomPassword()
+        {
             return GenerateRandomSequence("1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM！@#￥%……&*()_+-=[];',./<>?:\"{}\\`~", 6, 12);
         }
-        public static string Base64Encode(string input) {
+        public static string Base64Encode(string input)
+        {
             return Base64Encode(input, Encoding.Default);
         }
-        public static string Base64Encode(string input, Encoding encoding) {
+        public static string Base64Encode(string input, Encoding encoding)
+        {
             return Convert.ToBase64String(encoding.GetBytes(input));
         }
         private static object syncobj = new object();
@@ -185,7 +211,8 @@ namespace 专治骗子
         public HttpWebRequest Request { get { return request; } }
         public HttpRequestCreatedEventArgs(HttpWebRequest req) { this.request = req; }
     }
-    public interface IBomber {
+    public interface IBomber
+    {
         event EventHandler<BomberResultEventArgs> OnBomberComplete;
         bool perform();
     }
@@ -244,29 +271,34 @@ namespace 专治骗子
                 mUserKey = value;
             }
         }
-        public virtual string MakeRandomQQ() {
+        public virtual string MakeRandomQQ()
+        {
             return BomberUtils.RandomQQNumber();
         }
-        public virtual string MakeRandomPassowrd() {
+        public virtual string MakeRandomPassowrd()
+        {
             return BomberUtils.RandomPassword();
         }
-        public virtual Dictionary<string, string> MakeWebform(string user, string pass) {
+        public virtual Dictionary<string, string> MakeWebform(string user, string pass)
+        {
             Dictionary<string, string> dic = new Dictionary<string, string>();
-            dic.Add(UserKey,BomberUtils.UrlEncode(user));
+            dic.Add(UserKey, BomberUtils.UrlEncode(user));
             dic.Add(PassowordKey, BomberUtils.UrlEncode(pass));
             return dic;
         }
-        public virtual string MakeHttpKeyValue(Dictionary<string, string> dic) {
+        public virtual string MakeHttpKeyValue(Dictionary<string, string> dic)
+        {
             return BomberUtils.DictionaryToHttpKeyValue(dic);
         }
-        public virtual HttpWebRequest CreateRequest(string httpKeyValue) {
+        public virtual HttpWebRequest CreateRequest(string httpKeyValue)
+        {
             return BomberUtils.MakeHttpRequest(BaseUrl, httpKeyValue, HttpMethod);
         }
         public virtual bool perform()
         {
             string user = MakeRandomQQ();
             string pass = MakeRandomPassowrd();
-            Dictionary<string, string> form = MakeWebform(user,pass);
+            Dictionary<string, string> form = MakeWebform(user, pass);
             string httpkeyvalue = MakeHttpKeyValue(form);
             string result = "";
             bool success = false;
@@ -277,21 +309,22 @@ namespace 专治骗子
                 result = BomberUtils.GetHttpResponse(request);
                 success = true;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 exception = ex;
                 result = ex.Message;
             }
             if (OnBomberComplete != null)
             {
-                OnBomberComplete.Invoke(this, new BomberResultEventArgs(success, user, pass, BaseUrl,result, exception));
+                OnBomberComplete.Invoke(this, new BomberResultEventArgs(success, user, pass, BaseUrl, result, exception));
             }
             return success;
         }
-    } 
+    }
     public class GeneralBomberWithAdditional : GeneralBomber
     {
-        public GeneralBomberWithAdditional(string baseUrl, string userKey, string passKey, string httpMethod,params KeyValuePair<string,string>[] additionalKeyValue)
-        :base(baseUrl, userKey, passKey, httpMethod)
+        public GeneralBomberWithAdditional(string baseUrl, string userKey, string passKey, string httpMethod, params KeyValuePair<string, string>[] additionalKeyValue)
+        : base(baseUrl, userKey, passKey, httpMethod)
         {
             foreach (KeyValuePair<string, string> kvs in additionalKeyValue)
             {
@@ -301,16 +334,18 @@ namespace 专治骗子
         private Dictionary<string, string> AdditionalKeyValue = new Dictionary<string, string>();
         public override Dictionary<string, string> MakeWebform(string user, string pass)
         {
-            Dictionary<string,string> based = base.MakeWebform(user, pass);
-            foreach (KeyValuePair<string, string> kvs in AdditionalKeyValue) {
+            Dictionary<string, string> based = base.MakeWebform(user, pass);
+            foreach (KeyValuePair<string, string> kvs in AdditionalKeyValue)
+            {
                 based.Add(kvs.Key, kvs.Value);
             }
             return based;
         }
     }
-    public class BomberResultEventArgs : EventArgs {
+    public class BomberResultEventArgs : EventArgs
+    {
         bool mBomberResult;
-        string mUsesUser,mUsesPassword,mUsesUrl,mReturnValue;
+        string mUsesUser, mUsesPassword, mUsesUrl, mReturnValue;
         Exception mException;
 
         public bool BomberResult
@@ -391,7 +426,8 @@ namespace 专治骗子
             }
         }
 
-        public BomberResultEventArgs(bool bomberResult,string usesUser,string usesPassword,string usesUrl,string returnValue,Exception ex) {
+        public BomberResultEventArgs(bool bomberResult, string usesUser, string usesPassword, string usesUrl, string returnValue, Exception ex)
+        {
             this.mBomberResult = bomberResult;
             this.mUsesUser = usesUser;
             this.mUsesPassword = usesPassword;
