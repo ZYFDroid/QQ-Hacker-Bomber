@@ -54,6 +54,9 @@ namespace 专治骗子
     }
     public static class BomberUtils
     {
+
+        public static string useragent = "Mozilla/5.0 (Linux; Android 9; PH-1 Build/PPR1.180610.091; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044807 Mobile Safari/537.36 V1_AND_SQ_8.0.8_1218_YYB_D QQ/8.0.8.4115 NetType/WIFI WebP/0.3.0 Pixel/1312 StatusBarHeight/151";
+
         public static event EventHandler<HttpRequestCreatedEventArgs> BeforeRequestSend;
         public static long GetTimestamp()
         {
@@ -84,6 +87,10 @@ namespace 专治骗子
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url + "?" + httpKeyValue);
             req.Timeout = 5000;
             req.Method = "GET";
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
+            req.UserAgent = useragent;
+            req.Headers.Add("Accept-Language", "zh,zh-CN;q=0.9;q=0.9");
+            //req.Connection = "Keep-Alive";
             req.AllowAutoRedirect = false;
             if (null != BeforeRequestSend)
             {
@@ -98,6 +105,10 @@ namespace 专治骗子
             req.Timeout = 5000;
             req.Method = "POST";
             req.ContentType = "application/x-www-form-urlencoded";
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
+            req.UserAgent = useragent;
+            req.Headers.Add("Accept-Language", "zh,zh-CN;q=0.9;q=0.9");
+            //req.Connection = "Keep-Alive";
             byte[] data = Encoding.UTF8.GetBytes(httpKeyValue);
             req.ContentLength = data.Length;
             req.AllowAutoRedirect = false;
@@ -150,11 +161,8 @@ namespace 专治骗子
             lock (syncobj)
             {
                 Console.WriteLine("USER=" + user);
-                Thread.Sleep(4);
                 Console.WriteLine("PASS=" + pass);
-                Thread.Sleep(4);
                 Console.WriteLine("Result: " + result);
-                Thread.Sleep(4);
                 Console.WriteLine("-------------------------------------------");
             }
         }
